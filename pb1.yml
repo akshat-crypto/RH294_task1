@@ -1,0 +1,56 @@
+- hosts: all
+  tasks: 
+     - name: configuring yum for docker program
+       yum_repository:
+             name: docker 
+             baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+             description: repo for docker-ce
+             gpgcheck: no
+             repo_gpgcheck: no
+             reposdir: /etc/yum.repos.d/
+             state: present
+
+     - name: installing docker-ce from the above repolist
+       command:
+             cmd: yum install docker-ce --nobest -y
+
+     - name: install python36 program
+       yum:
+             name: python36
+             state: present
+    
+     - name: install the required python library
+       pip:
+             name: docker
+             state: present
+
+     - name: starting the docker services
+       service:
+             name: docker
+             enabled: yes
+             state: started
+
+     - name: pulling the httpd image from docker
+       docker_image:
+             name: httpd
+             source: pull
+
+     - name: running the container from centos images and passing the commands
+       docker_container:
+             name: os1
+             image: httpd
+             state: started
+             exposed_ports: "80"
+             published_ports: "4243:80"
+             network_mode: bridge
+             volumes: 
+                     - /root/t1vol:/usr/local/apache2/htdocs/
+             restart_policy: always
+
+     - name: copying the file to its working directory
+       copy:
+             src: /root/pbcode/task1/htmlfile/index2.html
+             dest: /root/t1vol
+
+
+
